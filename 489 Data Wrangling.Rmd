@@ -4,15 +4,27 @@ author: "Preston Lyons"
 date: "25/05/2021"
 output: html_document
 ---
-```{r lib}
+```{r lib, include=FALSE}
 library("tidyverse")
 library("haven")
 library("psych")
 library("dplyr")
 library("tidyr")
+library("papaja")
+library("sjPlot")
+library("patchwork")
+library("lubridate")
+library("pmdplyr")
+library("correlation")
+library("ggraph")
+library("kableExtra")
+library("psych")
+library("dplyr")
+library("tidyr")
+library("careless")
 ```
 
-```{r datadownload}
+```{r datadownload, include=FALSE}
 df <- read_sav("Your Beliefs About Memory, Disclosure, and Child Testimony_April 8, 2019_12.05.sav")
 ```
 
@@ -20,13 +32,55 @@ df <- read_sav("Your Beliefs About Memory, Disclosure, and Child Testimony_April
 ## Demographic Information
 
 df1 <- df %>%
-  dplyr::select("Q6", "Q7", "Q8_3_TEXT", "Q8_4_TEXT",	"Q8_5_TEXT",	"Q9",	"Q9_3_TEXT",	"Q10", "Q10_2_TEXT", "Q35_1", "Q35_2",	"Q35_5",	"Q35_9", "Q35_12", "Q48_1",	"Q48_2",	"Q48_5", "Q48_9",	"Q48_12",	"Q49_1",	"Q49_2",	"Q49_5",	"Q49_9",	"Q49_12",	"Q50_1",	"Q50_2", "Q50_5",	"Q50_9",	"Q50_12", "Q51_1",	"Q51_2",	"Q51_5",	"Q51_9", "Q51_12",	"Q52_1",	"Q52_2",	"Q52_5",	"Q52_9",	"Q52_12", "Q59_1", "Q59_2", "Q59_5", "Q59_9", "Q59_12", "Q60_1", "Q60_2", "Q60_5", "Q60_9", "Q60_12", "Q61_1", "Q61_2", "Q61_5", "Q61_9", "Q61_12", "Q62_1", "Q62_2", "Q62_5", "Q62_9", "Q62_12", "Q63_1", "Q63_2", "Q63_5", "Q63_9", "Q63_12")
+  dplyr::select("Q6", "Q7", "Q9",	"Q9_3_TEXT",	"Q10", "Q10_2_TEXT", "Q35_1", "Q35_2",	"Q35_5",	"Q35_9", "Q35_12", "Q48_1",	"Q48_2",	"Q48_5", "Q48_9",	"Q48_12",	"Q49_1",	"Q49_2",	"Q49_5",	"Q49_9",	"Q49_12",	"Q50_1",	"Q50_2", "Q50_5",	"Q50_9",	"Q50_12", "Q51_1",	"Q51_2",	"Q51_5",	"Q51_9", "Q51_12",	"Q52_1",	"Q52_2",	"Q52_5",	"Q52_9",	"Q52_12", "Q59_1", "Q59_2", "Q59_5", "Q59_9", "Q59_12", "Q60_1", "Q60_2", "Q60_5", "Q60_9", "Q60_12", "Q61_1", "Q61_2", "Q61_5", "Q61_9", "Q61_12", "Q62_1", "Q62_2", "Q62_5", "Q62_9", "Q62_12", "Q63_1", "Q63_2", "Q63_5", "Q63_9", "Q63_12")
 
 ## Rename the relevant variables
 
-df1 <- rename(df1, Age = Q6, Gender = Q7, EthnPacTXT = Q8_3_TEXT, EthnAsiaTXT = Q8_4_TEXT, EthnOtherTXT = Q8_5_TEXT, EduChoice = Q9, EduHighest = Q9_3_TEXT, Parent = Q10, OldestChild = Q10_2_TEXT, MemChild.TD.3to5 = Q35_1, MemChild.TD.6to11 = Q35_2, MemChild.ID = Q35_5, MemAdult.TD = Q35_9, MemAdult.ID = Q35_12, SugChild1.TD.3to5 = Q48_1, SugChild1.TD.6to11 = Q48_2, SugChild1.ID = Q48_5, SugAdult1.TD = Q48_9, SugAdult1.ID = Q48_12, SugChild2.TD.3to5 = Q49_1, SugChild2.TD.6to11 = Q49_2, SugChild2.ID = Q49_5, SugAdult2.TD = Q49_9, SugAdult2.ID = Q49_12, SugChild3.TD.3to5 = Q50_1, SugChild3.TD.6to11 = Q50_2, SugChild3.ID = Q50_5, SugAdult3.TD = Q50_9, SugAdult3.ID = Q50_12, SugChild4.TD.3to5 = Q51_1, SugChild4.TD.6to11 = Q51_2, SugChild4.ID = Q51_5, SugAdult4.TD = Q51_9, SugAdult4.ID = Q51_12, SugChild5.TD.3to5 = Q52_1, SugChild5.TD.6to11 = Q52_2, SugChild5.ID = Q52_5, SugAdult5.TD = Q52_9, SugAdult5.ID = Q52_12, TestChild1.TD.3to5 = Q59_1, TestChild1.TD.6to11 = Q59_2, TestChild1.ID = Q59_5, TestAdult1.TD = Q59_9, TestAdult1.ID = Q59_12, TestChild2.TD.3to5 = Q60_1, TestChild2.TD.6to11 = Q60_2, TestChild2.ID = Q60_5, TestAdult2.TD = Q60_9, TestAdult2.ID = Q60_12, TestChild3.TD.3to5 = Q61_1, TestChild3.TD.6to11 = Q61_2, TestChild3.ID = Q61_5, TestAdult3.TD = Q61_9, TestAdult3.ID = Q61_12, TestChild4.TD.3to5 = Q62_1, TestChild4.TD.6to11 = Q62_2, TestChild4.ID = Q62_5, TestAdult4.TD = Q62_9, TestAdult4.ID = Q62_12, TestChild5.TD.3to5 = Q63_1, TestChild5.TD.6to11 = Q63_2, TestChild5.ID = Q63_5, TestAdult5.TD = Q63_9, TestAdult5.ID = Q63_12)
+df1 <- rename(df1, Age = Q6, Gender = Q7, EduChoice = Q9, EduHighest = Q9_3_TEXT, Parent = Q10, OldestChild = Q10_2_TEXT, MemChild.TD.3to5 = Q35_1, MemChild.TD.6to11 = Q35_2, MemChild.ID = Q35_5, MemAdult.TD = Q35_9, MemAdult.ID = Q35_12, SugChild1.TD.3to5 = Q48_1, SugChild1.TD.6to11 = Q48_2, SugChild1.ID = Q48_5, SugAdult1.TD = Q48_9, SugAdult1.ID = Q48_12, SugChild2.TD.3to5 = Q49_1, SugChild2.TD.6to11 = Q49_2, SugChild2.ID = Q49_5, SugAdult2.TD = Q49_9, SugAdult2.ID = Q49_12, SugChild3.TD.3to5 = Q50_1, SugChild3.TD.6to11 = Q50_2, SugChild3.ID = Q50_5, SugAdult3.TD = Q50_9, SugAdult3.ID = Q50_12, SugChild4.TD.3to5 = Q51_1, SugChild4.TD.6to11 = Q51_2, SugChild4.ID = Q51_5, SugAdult4.TD = Q51_9, SugAdult4.ID = Q51_12, SugChild5.TD.3to5 = Q52_1, SugChild5.TD.6to11 = Q52_2, SugChild5.ID = Q52_5, SugAdult5.TD = Q52_9, SugAdult5.ID = Q52_12, TestChild1.TD.3to5 = Q59_1, TestChild1.TD.6to11 = Q59_2, TestChild1.ID = Q59_5, TestAdult1.TD = Q59_9, TestAdult1.ID = Q59_12, TestChild2.TD.3to5 = Q60_1, TestChild2.TD.6to11 = Q60_2, TestChild2.ID = Q60_5, TestAdult2.TD = Q60_9, TestAdult2.ID = Q60_12, TestChild3.TD.3to5 = Q61_1, TestChild3.TD.6to11 = Q61_2, TestChild3.ID = Q61_5, TestAdult3.TD = Q61_9, TestAdult3.ID = Q61_12, TestChild4.TD.3to5 = Q62_1, TestChild4.TD.6to11 = Q62_2, TestChild4.ID = Q62_5, TestAdult4.TD = Q62_9, TestAdult4.ID = Q62_12, TestChild5.TD.3to5 = Q63_1, TestChild5.TD.6to11 = Q63_2, TestChild5.ID = Q63_5, TestAdult5.TD = Q63_9, TestAdult5.ID = Q63_12)
 
-summary(df1)
-df1
 ```
+
+```{r efa, include=FALSE}
+id_test_child <- paste0("TestChild",1:5,".ID")
+id_mem_child <- paste0("MemChild.ID")
+id_sug_child <- paste0("SugChild",1:5,".ID")
+
+td_test_3_5 <- paste0("TestChild",1:5,".TD.3to5")
+td_mem_3_5 <- paste0("MemChild.TD.3to5")
+td_sug_3_5 <- paste0("SugChild",1:5,".TD.3to5")
+
+td_test_6_11 <- paste0("TestChild",1:5,".TD.6to11")
+td_mem_6_11 <- paste0("MemChild.TD.6to11")
+td_sug_6_11 <- paste0("SugChild",1:5,".TD.6to11")
+
+id_test_adult <- paste0("TestAdult",1:5,".ID")
+id_mem_adult <- paste0("MemAdult.ID")
+id_sug_adult <- paste0("SugAdult",1:5,".ID")
+
+td_test_adult <- paste0("TestAdult",1:5,".TD")
+td_mem_adult <- paste0("MemAdult.TD")
+td_sug_adult <- paste0("SugAdult",1:5,".TD")
+
+psych::fa.parallel(df1[c(id_test_child, id_mem_child, id_sug_child)], n.iter = 1000)
+psych::fa.parallel(df1[c(td_test_3_5, td_mem_3_5, td_sug_3_5)], n.iter = 1000)
+psych::fa.parallel(df1[c(td_test_6_11, td_mem_6_11, td_sug_6_11)], n.iter = 1000)
+psych::fa.parallel(df1[c(id_test_adult, id_mem_adult, id_sug_adult)], n.iter = 1000)
+psych::fa.parallel(df1[c(td_test_adult, td_mem_adult, td_sug_adult)], n.iter = 1000)
+
+psych::fa(df1[c(id_test_child, id_mem_child, id_sug_child)], rotate = "oblimin", nfactors = 2) %>%
+  print.psych(., cut = .40, sort = T)
+
+psych::fa(df1[c(td_test_3_5, td_mem_3_5, td_sug_3_5)], rotate = "oblimin", nfactors = 3) %>%
+  print.psych(., cut = .40, sort = T)
+
+psych::fa(df1[c(td_test_6_11, td_mem_6_11, td_sug_6_11)], rotate = "oblimin", nfactors = 2) %>%
+  print.psych(., cut = .40, sort = T)
+
+psych::fa(df1[c(id_test_adult, id_mem_adult, id_sug_adult)], rotate = "oblimin", nfactors = 3) %>%
+  print.psych(., cut = .40, sort = T)
+
+psych::fa(df1[c(td_test_adult, td_mem_adult, td_sug_adult)], rotate = "oblimin", nfactors = 3) %>%
+  print.psych(., cut = .40, sort = T)
+```
+
 
