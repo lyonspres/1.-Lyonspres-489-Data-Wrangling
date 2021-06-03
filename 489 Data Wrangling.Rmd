@@ -317,7 +317,7 @@ report::report(emdf1)
 
 ```{r referencing, include=FALSE}
 report::cite_packages()
-citation("report")
+citation("emmeans")
 ```
 
 
