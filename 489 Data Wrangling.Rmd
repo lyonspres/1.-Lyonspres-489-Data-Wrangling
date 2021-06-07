@@ -12,7 +12,6 @@ library("haven")
 library("psych")
 library("dplyr")
 library("tidyr")
-library("papaja")
 library("sjPlot")
 library("patchwork")
 library("lubridate")
@@ -29,11 +28,11 @@ library("lme4")
 library('lmerTest')
 ```
 
-```{r datadownload, include=FALSE}
+```{r datadownload, include=TRUE}
 df <- read_sav("Your Beliefs About Memory, Disclosure, and Child Testimony_April 8, 2019_12.05.sav")
 ```
 
-```{r data1, include=FALSE}
+```{r data1, include=TRUE}
 ## Select the variables relevant to my study
 
 df1 <- df %>%
@@ -69,13 +68,11 @@ td_sug_adult <- paste0("SugAdult",1:5,".TD")
 
 short <- 
 c(id_test_child, id_mem_child, id_sug_child, td_test_3_5, td_mem_3_5, td_sug_3_5, td_test_6_11, td_mem_6_11, td_sug_6_11, id_test_adult, id_mem_adult, id_sug_adult, td_test_adult, td_mem_adult, td_sug_adult)
+
 ```
 
 ```{r data2, include=TRUE}
 ## Select the demographic variables and rename them
-
-library(table1)
-library(kableExtra)
 
 df2 <- df %>%
   dplyr::select("Q6", "Q7",	"Q9",	"Q10")
@@ -103,16 +100,16 @@ df2_described <-
 prettyR::describe(df2)
 ```
 
-```{r knownresponsedata, include=FALSE}
+```{r knownresponsedata, include=TRUE}
 ## Take out the DK responses
-
-
 df1[,paste0(short, "_bin")] <- lapply(df1[,short], function(x){
   car::recode(x, "1 = 0; 2 = 0; 3 = 0; 4 = 0; 5 = 0; 6 = 0; 7 = 1")})
 
 df1[,short] <- lapply(df1[,short], function(x){
   car::recode(x, "1 = 1; 2 = 2; 3 = 3; 4 = 4; 5 = 5; 6 = 6; else = NA")})
 
+perc_dn <- 
+(sum(rowSums(df1[,paste0(short, "_bin")])) / (nrow(df1[,paste0(short, "_bin")]) * ncol(df1[,paste0(short, "_bin")]))) * 100
 ```
 
 ```{r data4, include=TRUE}
@@ -180,10 +177,12 @@ lapply(domain_list, function(x){
   do.call(rbind, .) %>%
   cbind(measure_names, .)
 
+library(papaja)
+
 apa_table(domain_out, caption = "Means and standard deviations of measures in the study")
 ```
 
-```{r reliability, include=FALSE}
+```{r reliability, include=TRUE}
 measure_list <- list(id_test_child, 
                   id_sug_child,
                   td_test_3_5,
@@ -223,10 +222,6 @@ apa_table(rel_list)
 ```{r lemranalysis, include=TRUE}
 ## LEMR (Linear Effects Mixed Regression)
 df1$id <- paste0("id_", 1:nrow(df1))
-library(lme4)
-library(lmerTest)
-library(tidyverse)
-library(scales)
 
 df1_long <- df1[c("id_test_child", "id_mem_child", "id_sug_child", "td_test_3_5", "td_mem_3_5", "td_sug_3_5", "td_test_6_11", "td_mem_6_11", "td_sug_6_11", "id_test_adult", "id_mem_adult", "id_sug_adult", "td_test_adult", "td_mem_adult", "td_sug_adult", "id")] %>%
   pivot_longer(., -id) %>%
@@ -235,6 +230,9 @@ df1_long <- df1[c("id_test_child", "id_mem_child", "id_sug_child", "td_test_3_5"
   mutate(., target = factor(target, levels = c("td3", "idchild", "td6", "idadult", "tdadult")))
 
 lmer_out <- lmer("value ~ target * cat + (1|id)", data = df1_long)
+
+sjPlot::tab_model(lmer_out, file = "lmer_out.html")
+
 
 sjPlot::plot_model(lmer_out, type =  "int") +
     labs(title = "Jurors' Beliefs of Witnesses With and Without ID's",
@@ -248,7 +246,7 @@ sjPlot::plot_model(lmer_out, type =  "int") +
          "idadult" = "AWID",
          "tdadult" = "TD Adult"))
 
-report::report(lmer_out)
+rep1 <- report::report(lmer_out)
 
 # Try to get estimated marginal means from the emmeans package
 
@@ -258,6 +256,8 @@ emdf1 <- emdf$contrasts %>%
          data.frame() %>%
          dplyr::select(., contrast, estimate, p.value) %>%
          mutate(p.value = round(p.value, 3))
+
+apa_table(emdf1)
 
 report::report(emdf1)
 ```
@@ -275,13 +275,16 @@ dn_long <-
   select(., dn_id, dn_td, dn_id_ad, dn_td_ad, id) %>%
   pivot_longer(., -id)
 
-lmer_out <- lmer(value ~ name + (1|id), dn_long)
+lmer_out2 <- lmer(value ~ name + (1|id), dn_long)
+
+sjPlot::tab_model(lmer_out2, file = "lmer_out2.html")
+
 
 lm_out <- lm(value ~ name , dn_long)
 
 sjPlot::plot_model(lmer_out, type = "pred")$name +
-    labs(title = "Graphical Summary Evaluation and Don't Know Scores for Each Age-Group",
-       x = "Coalesced Child and Adult Scores With and Without ID",
+    labs(title = "Jurors' Don't Know Scores for Each Group",
+       x = "Child and Adult Scores With and Without an ID",
        y = "Averaged Values") +
     scale_x_continuous(labels=c("dn_id" = "CWID",
          "dn_id_ad" = "AWID",
@@ -293,17 +296,35 @@ sjPlot::plot_model(lmer_out, type = "pred")$name +
 summary(lmer_out)
 summary(lm_out)
 
-emmeans::emmeans(lmer_out, pairwise ~ name)
+emdf2 <- emmeans::emmeans(lmer_out, pairwise ~ name)
+
+emdf3 <- emdf2$contrasts %>%
+         data.frame() %>%
+         dplyr::select(., contrast, estimate, p.value) %>%
+         mutate(p.value = round(p.value, 3))
+
+apa_table(lmer_out)
+
+report::report(emdf3)
 ```
 
 ```{r referencing, include=FALSE}
+## Latest Packages
+
+library(lme4)
+library(lmerTest)
+library(tidyverse)
+library(scales)
+library(table1)
+library(kableExtra)
+
 ## Referencing Packages Used Before 3/6/21
 
 report::cite_packages()
 
 ## Referencing FUrther Packages Used After 3/6/21
 
-citation("emmeans")
+citation("papaja")
 ```
 
 
