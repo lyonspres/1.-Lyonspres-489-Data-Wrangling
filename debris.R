@@ -8,9 +8,6 @@
 
 Keep remembering has this helped the reader understand WHY 
 
-It has been noted that if people do not look as if they have an ID, juries can disregard the disclosure of an ID being present (Keyes, et al., 1998, Brookbanks, 1999). 
-
-It has been noted that if people do not look as if they have an ID, juries can disregard the disclosure of an ID being present (Keyes, et al., 1998, Brookbanks, 1999). 
 
 Acknowledging PWID have deficits is not inherently harmful, and can be helpful if it means their additional and unique needs are met (IHC, 2017), however where it can become "dysfunctional" is when perceptions become "focus[sed] inordinately on the characteristics of their disability to the exclusion of all else" (Hehir, 2002). For instance, seeing AWID as eternal children focusses solely on their mental age, and disregards the fact that they are, in fact, adults, who have various transcendent competencies (Emerson et al., 1999; Bowles & Sharman, 2014). Literature on jurors' perceptions of AWID remains extremely scarce, 
 
